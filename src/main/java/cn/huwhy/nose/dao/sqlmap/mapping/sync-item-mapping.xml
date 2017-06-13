@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.huwhy.nose.dao.SyncItemDao">
+
+  <sql id="COLUMNS">
+     id,`ok`
+  </sql>
+
+  <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="SyncItem">
+    insert into sync_item(
+    <include refid="COLUMNS"/>
+    )values(
+    #{id},#{ok}
+    ) on duplicate key update
+    `ok`=VALUES(`ok`)
+  </insert>
+
+  <select id="get" resultType="SyncItem" parameterType="java.lang.Long">
+    select
+    <include refid="COLUMNS"/>
+    from sync_item where id = #{id}
+  </select>
+
+</mapper>

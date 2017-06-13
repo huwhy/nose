@@ -10,7 +10,7 @@
     <setting name="defaultStatementTimeout" value="25000" />
   </settings>
   <plugins>
-    <plugin interceptor="com.comblife.util.mybatis.PagingInterceptor" />
-    <plugin interceptor="com.comblife.util.mybatis.ResultTypeInterceptor" />
+    <plugin interceptor="cn.huwhy.ibatis.PagingInterceptor" />
+    <plugin interceptor="cn.huwhy.ibatis.ResultTypeInterceptor" />
   </plugins>
 </configuration>

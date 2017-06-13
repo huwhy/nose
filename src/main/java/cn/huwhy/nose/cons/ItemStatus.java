@@ -1,6 +1,6 @@
 package cn.huwhy.nose.cons;
 
-import com.comblife.interfaces.EnumValue;
+import cn.huwhy.interfaces.EnumValue;
 
 public enum ItemStatus implements EnumValue<String> {
     ONLINE,

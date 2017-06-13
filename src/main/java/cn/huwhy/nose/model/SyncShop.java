@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class SyncShop {
     private Long    id;
-    private Boolean lock;
+    private Boolean locked;
     private Date    lastSyncTime;
 
     public Long getId() {
@@ -15,12 +15,12 @@ public class SyncShop {
         this.id = id;
     }
 
-    public Boolean getLock() {
-        return lock;
+    public Boolean getLocked() {
+        return locked;
     }
 
-    public void setLock(Boolean lock) {
-        this.lock = lock;
+    public void setLocked(Boolean locked) {
+        this.locked = locked;
     }
 
     public Date getLastSyncTime() {
