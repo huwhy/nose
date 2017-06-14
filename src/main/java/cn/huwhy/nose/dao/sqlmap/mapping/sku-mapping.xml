@@ -12,7 +12,7 @@
     )values(
     #{id},#{itemId},#{shopId},#{spec},#{marketPrice},#{price},#{stock},#{deleted},#{barcode}
     ) on duplicate key update
-    `stock`=VALUES(`stock`)
+    `stock`=VALUES(`stock`),spec=VALUES(spec), shop_id=VALUES(shop_id)
   </insert>
 
   <insert id="saves">
@@ -23,7 +23,7 @@
       (#{sku.id},#{sku.itemId},#{sku.shopId},#{sku.spec},#{sku.marketPrice},#{sku.price},#{sku.stock},#{sku.deleted},#{sku.barcode})
     </foreach>
      on duplicate key update
-    `stock`=VALUES(`stock`)
+    `stock`=VALUES(`stock`), spec=VALUES(spec), shop_id=VALUES(shop_id)
   </insert>
 
   <select id="get" resultType="Sku" parameterType="java.lang.Long">
@@ -31,6 +31,9 @@
     <include refid="COLUMNS"/>
     from sku where id = #{id}
   </select>
+  <update id="delSkuList" >
+    update sku set deleted = 1 where item_id=#{itemId}
+  </update>
   <select id="nextId" resultType="java.lang.Long">
     select nextval('seq_sku')
   </select>

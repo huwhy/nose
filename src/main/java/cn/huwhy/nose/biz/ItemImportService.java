@@ -34,6 +34,7 @@ public class ItemImportService {
     private static Pattern TB_SKU_P      = Pattern.compile("skuMap\\s*:\\s*(\\{.*\\})[\\s\\S]*,propertyMemoMap\\s*:\\s*(\\{.*\\})");
     private static Pattern TB_DESC_URL_P = Pattern.compile("\\s*descUrl\\s*:\\s*location.protocol\\s*===\\s*'http:' \\s*\\?\\s*'([^']*)'\\s*");
     private static Pattern TB_IMAGES_P   = Pattern.compile("auctionImages[^:]*:\\s*(\\[[^\\]]+\\])");
+    private static Pattern TB_SHOP_P   = Pattern.compile("shopId[^:]*:[^:]*'(\\d+)'");
 
     private static Pattern    TM_SKU_P        = Pattern.compile("skuList.*:(\\[[^\\]]*\\])[^,]*,.*skuMap[^:]*:[^\\{]*(\\{([^\\{\\}]*\\{[^\\{\\}]*\\}[^\\{\\}]*)*\\})");
     private static Pattern    TM_DESC_URL_P   = Pattern.compile("httpsDescUrl\":\"([^\"]*)\"");
@@ -116,9 +117,14 @@ public class ItemImportService {
                 }
             }
             if (Strings.isNullOrEmpty(item.getContent()) && e.html().contains("g_config")) {
+
                 Matcher m = TB_DESC_URL_P.matcher(e.html());
                 if (m.find()) {
                     item.setContent(getItemContents(m));
+                }
+                Matcher sm = TB_SHOP_P.matcher(e.html());
+                if (sm.find()) {
+                    item.setShopId(Long.valueOf(sm.group(1)));
                 }
             }
         }

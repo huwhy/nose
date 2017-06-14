@@ -1,32 +1,44 @@
 package cn.huwhy.nose.task;
 
-import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import cn.huwhy.interfaces.Json;
 import cn.huwhy.interfaces.Paging;
-import cn.huwhy.nose.ItemTerm;
 import cn.huwhy.nose.biz.ItemBiz;
 import cn.huwhy.nose.biz.ItemImportService;
 import cn.huwhy.nose.biz.SyncBiz;
 import cn.huwhy.nose.cons.ItemStatus;
 import cn.huwhy.nose.model.Item;
 import cn.huwhy.nose.model.SyncItem;
+import cn.huwhy.nose.term.ItemTerm;
 
 @Component
 public class SyncItemTask {
 
-    @Autowired
-    private SyncBiz syncBiz;
-    @Autowired
-    private ItemBiz itemBiz;
-    @Autowired
-    private ItemImportService itemImportService;
+    private Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Scheduled(cron = "0 0/2 22 * * *")
+    @Autowired
+    private SyncBiz             syncBiz;
+    @Autowired
+    private ItemBiz             itemBiz;
+    @Autowired
+    private ItemImportService   itemImportService;
+    @Autowired
+    private TransactionTemplate txTemplate;
+
+    private static Set<Long> ids = new HashSet<>();
+
+    @Scheduled(cron = "0 0/2 * * * *")
     public void sync() {
         ItemTerm term = new ItemTerm();
         term.setPage(1L);
@@ -34,22 +46,37 @@ public class SyncItemTask {
         Paging<SyncItem> paging = syncBiz.findSyncItems(term);
         do {
             for (SyncItem si : paging.getData()) {
-                try {
-                    Json<Item> json = itemImportService.importAliItem(si.getUrl());
-                    if (json.isOk()) {
-                        Item item = json.getData();
-                        item.setTbId(si.getId());
-                        item.setStatus(ItemStatus.ONLINE);
-                        si.setOk(true);
-                        syncBiz.save(si);
-                        itemBiz.save(item);
+                if (ids.add(si.getId())) {
+                    logger.info("sync item start tb-id={}", si.getId());
+                    try {
+                        Json<Item> json = itemImportService.importAliItem(si.getUrl());
+                        if (json.isOk()) {
+                            syncSave(si, json);
+                        }
+                        logger.info("sync item end tb-id={}, result-{}, msg-{}",
+                                si.getId(), json.isOk(), json.getMessage());
+                    } catch (Throwable e) {
+                        logger.error("sync item error tb-id=" + si.getId(), e);
+                    } finally {
+                        ids.remove(si.getId());
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-                si.setOk(true);
             }
             term.setPage(term.getPage() + 1);
         } while (term.getPage() <= paging.getTotalPage());
+    }
+
+    private void syncSave(SyncItem si, Json<Item> json) {
+        txTemplate.execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                Item item = json.getData();
+                item.setTbId(si.getId());
+                item.setStatus(ItemStatus.ONLINE);
+                si.setOk(true);
+                syncBiz.save(si);
+                itemBiz.save(item);
+            }
+        });
     }
 }

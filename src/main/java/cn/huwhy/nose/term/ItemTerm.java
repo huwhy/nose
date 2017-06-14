@@ -1,4 +1,4 @@
-package cn.huwhy.nose;
+package cn.huwhy.nose.term;
 
 import cn.huwhy.interfaces.Term;
 

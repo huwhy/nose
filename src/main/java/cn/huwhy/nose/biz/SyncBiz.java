@@ -4,10 +4,11 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import cn.huwhy.interfaces.Paging;
-import cn.huwhy.nose.ItemTerm;
-import cn.huwhy.nose.ShopTerm;
+import cn.huwhy.nose.term.ItemTerm;
+import cn.huwhy.nose.term.ShopTerm;
 import cn.huwhy.nose.dao.SyncItemDao;
 import cn.huwhy.nose.dao.SyncShopDao;
 import cn.huwhy.nose.model.SyncItem;
@@ -25,6 +26,7 @@ public class SyncBiz {
         return new Paging<>(term, list);
     }
 
+    @Transactional
     public void save(SyncItem si) {
         syncItemDao.save(si);
     }

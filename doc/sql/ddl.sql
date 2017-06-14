@@ -68,7 +68,7 @@ CREATE TABLE `sku` (
   `deleted` bit(1) DEFAULT b'0' COMMENT '是否被删除',
   `barcode` varchar(32) DEFAULT NULL COMMENT 'SKU编码',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='产品SKU表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='产品SKU表';
 
 DROP table IF EXISTS `sequence`;
 CREATE TABLE `sequence` (
