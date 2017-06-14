@@ -268,6 +268,8 @@ public class Item implements Serializable {
 
     private String content;
 
+    private List<Sku> skuList;
+
     public String getContent() {
         return content;
     }
@@ -278,5 +280,13 @@ public class Item implements Serializable {
 
     public List<String> getImageList() {
         return Splitter.on(',').splitToList(getImages());
+    }
+
+    public List<Sku> getSkuList() {
+        return skuList;
+    }
+
+    public void setSkuList(List<Sku> skuList) {
+        this.skuList = skuList;
     }
 }

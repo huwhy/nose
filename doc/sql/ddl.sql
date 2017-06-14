@@ -56,6 +56,20 @@ CREATE TABLE `sync_shop` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='店铺同步表';
 
+DROP TABLE  IF EXISTS `sku`;
+CREATE TABLE `sku` (
+  `id` bigint(20) NOT NULL COMMENT 'SKUID',
+  `item_id` bigint(20) NOT NULL DEFAULT '0' COMMENT '产品ID',
+  `shop_id` bigint(20) DEFAULT NULL COMMENT 'SHOPID',
+  `spec` varchar(30) NOT NULL COMMENT '规格描述',
+  `market_price` int(11) DEFAULT NULL COMMENT '市场价(分)',
+  `price` int(11) DEFAULT NULL COMMENT '售价(分)',
+  `stock` int(11) DEFAULT '0' COMMENT '库存',
+  `deleted` bit(1) DEFAULT b'0' COMMENT '是否被删除',
+  `barcode` varchar(32) DEFAULT NULL COMMENT 'SKU编码',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='产品SKU表';
+
 DROP table IF EXISTS `sequence`;
 CREATE TABLE `sequence` (
   `name` varchar(50) NOT NULL,

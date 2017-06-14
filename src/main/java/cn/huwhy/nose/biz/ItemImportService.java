@@ -1,8 +1,11 @@
 package cn.huwhy.nose.biz;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,13 +16,17 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.comblife.athena.common.util.CollectionUtil;
 import com.comblife.athena.common.util.StringUtil;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
 
 import cn.huwhy.interfaces.Json;
 import cn.huwhy.nose.model.Item;
+import cn.huwhy.nose.model.Sku;
 
 @Component
 public class ItemImportService {
@@ -28,10 +35,11 @@ public class ItemImportService {
     private static Pattern TB_DESC_URL_P = Pattern.compile("\\s*descUrl\\s*:\\s*location.protocol\\s*===\\s*'http:' \\s*\\?\\s*'([^']*)'\\s*");
     private static Pattern TB_IMAGES_P   = Pattern.compile("auctionImages[^:]*:\\s*(\\[[^\\]]+\\])");
 
-    private static Pattern TM_SKU_P        = Pattern.compile("skuList.*:(\\[[^\\]]*\\])[^,]*,.*skuMap[^:]*:[^\\{]*(\\{([^\\{\\}]*\\{[^\\{\\}]*\\}[^\\{\\}]*)*\\})");
-    private static Pattern TM_DESC_URL_P   = Pattern.compile("httpsDescUrl\":\"([^\"]*)\"");
-    private static Pattern TM_IMAGES_P     = Pattern.compile("default[^:]*:\\s*(\\[[^\\]]+\\])[\\s\\S]*rateConfig");
-    private static Pattern TMHK_DESC_URL_P = Pattern.compile("httpsDescUrl[^:]*:[^\"]*\"([^\"]+)\"");
+    private static Pattern    TM_SKU_P        = Pattern.compile("skuList.*:(\\[[^\\]]*\\])[^,]*,.*skuMap[^:]*:[^\\{]*(\\{([^\\{\\}]*\\{[^\\{\\}]*\\}[^\\{\\}]*)*\\})");
+    private static Pattern    TM_DESC_URL_P   = Pattern.compile("httpsDescUrl\":\"([^\"]*)\"");
+    private static Pattern    TM_IMAGES_P     = Pattern.compile("default[^:]*:\\s*(\\[[^\\]]+\\])[\\s\\S]*rateConfig");
+    private static Pattern    TMHK_DESC_URL_P = Pattern.compile("httpsDescUrl[^:]*:[^\"]*\"([^\"]+)\"");
+    private static BigDecimal PERCENT         = new BigDecimal("100");
 
     public Json<Item> importAliItem(String url) throws IOException {
         if (url.matches("http[s]?://\\w+\\.tmall\\.com[\\s\\S]+")) {
@@ -85,28 +93,28 @@ public class ItemImportService {
                 item.setMainImg(images.get(0));
                 item.setImages(Joiner.on(',').join(images));
             }
-            //            if (CollectionUtil.isEmpty(item.getSkuList()) && e.html().contains("Hub.config")) {
-            //                Matcher m = TB_SKU_P.matcher(e.html());
-            //                Map<String, Map<String, String>> skuMap;
-            //                Map<String, String> skuNameMap;
-            //                if (m.find()) {
-            //                    List<Sku> skuList = new ArrayList<>();
-            //                    skuMap = JSON.parseObject(m.group(1), Map.class);
-            //                    skuNameMap = JSON.parseObject(m.group(2), Map.class);
-            //                    Sku sku = new Sku();
-            //                    Map<String, String> skuInfo = Iterables.getFirst(skuMap.values(), null);
-            //                    if (skuInfo == null)
-            //                        break;
-            //                    String skuName = Iterables.getFirst(skuNameMap.values(), "");
-            //                    sku.setSpec(skuName);
-            //                    BigDecimal price = new BigDecimal(skuInfo.get("price"));
-            //                    sku.setMarketPrice(price);
-            //                    sku.setPrice(price);
-            //                    sku.setStock(Long.valueOf(skuInfo.get("stock")));
-            //                    skuList.add(sku);
-            //                    item.setSkuList(skuList);
-            //                }
-            //            }
+            if (CollectionUtil.isEmpty(item.getSkuList()) && e.html().contains("Hub.config")) {
+                Matcher m = TB_SKU_P.matcher(e.html());
+                Map<String, Map<String, String>> skuMap;
+                Map<String, String> skuNameMap;
+                if (m.find()) {
+                    List<Sku> skuList = new ArrayList<>();
+                    skuMap = JSON.parseObject(m.group(1), Map.class);
+                    skuNameMap = JSON.parseObject(m.group(2), Map.class);
+                    Sku sku = new Sku();
+                    Map<String, String> skuInfo = Iterables.getFirst(skuMap.values(), null);
+                    if (skuInfo == null)
+                        break;
+                    String skuName = Iterables.getFirst(skuNameMap.values(), "");
+                    sku.setSpec(skuName);
+                    Integer price = new BigDecimal(skuInfo.get("price")).multiply(PERCENT).intValue();
+                    sku.setMarketPrice(price);
+                    sku.setPrice(price);
+                    sku.setStock(Integer.valueOf(skuInfo.get("stock")));
+                    skuList.add(sku);
+                    item.setSkuList(skuList);
+                }
+            }
             if (Strings.isNullOrEmpty(item.getContent()) && e.html().contains("g_config")) {
                 Matcher m = TB_DESC_URL_P.matcher(e.html());
                 if (m.find()) {
@@ -114,15 +122,15 @@ public class ItemImportService {
                 }
             }
         }
-        //        if (CollectionUtil.isEmpty(item.getSkuList())) {
-        //            Sku sku = new Sku();
-        //            sku.setStock(1L);
-        //            sku.setMarketPrice(BigDecimal.ZERO);
-        //            sku.setPrice(BigDecimal.ZERO);
-        //            sku.setSpec("默认");
-        //            sku.setDeleted(false);
-        //            item.setSkuList(Arrays.asList(sku));
-        //        }
+        if (CollectionUtil.isEmpty(item.getSkuList())) {
+            Sku sku = new Sku();
+            sku.setStock(1);
+            sku.setMarketPrice(0);
+            sku.setPrice(0);
+            sku.setSpec("默认");
+            sku.setDeleted(false);
+            item.setSkuList(Arrays.asList(sku));
+        }
         return Json.SUCCESS().setData(item);
     }
 
@@ -163,28 +171,28 @@ public class ItemImportService {
                     item.setImages(Joiner.on(',').join(images));
                 }
             }
-            //            if (CollectionUtil.isEmpty(item.getSkuList()) && e.html().contains("skuList")) {
-            //                Matcher m = TM_SKU_P.matcher(e.html());
-            //                JSONArray skuMap;
-            //                Map<String, JSONObject> skuNameMap;
-            //                if (m.find()) {
-            //                    List<Sku> skuList = new ArrayList<>();
-            //                    skuMap = JSON.parseArray(m.group(1));
-            //                    skuNameMap = JSON.parseObject(m.group(2), Map.class);
-            //                    Sku sku = new Sku();
-            //                    JSONObject skuInfo = Iterables.getFirst(skuNameMap.values(), null);
-            //                    if (skuInfo == null)
-            //                        break;
-            //                    String skuName = ((Map<String, String>) skuMap.get(0)).get("names");
-            //                    sku.setSpec(skuName);
-            //                    BigDecimal price = skuInfo.getBigDecimal("price");
-            //                    sku.setMarketPrice(price);
-            //                    sku.setPrice(price);
-            //                    sku.setStock(skuInfo.getLong("stock"));
-            //                    skuList.add(sku);
-            //                    item.setSkuList(skuList);
-            //                }
-            //            }
+            if (CollectionUtil.isEmpty(item.getSkuList()) && e.html().contains("skuList")) {
+                Matcher m = TM_SKU_P.matcher(e.html());
+                JSONArray skuMap;
+                Map<String, JSONObject> skuNameMap;
+                if (m.find()) {
+                    List<Sku> skuList = new ArrayList<>();
+                    skuMap = JSON.parseArray(m.group(1));
+                    skuNameMap = JSON.parseObject(m.group(2), Map.class);
+                    Sku sku = new Sku();
+                    JSONObject skuInfo = Iterables.getFirst(skuNameMap.values(), null);
+                    if (skuInfo == null)
+                        break;
+                    String skuName = ((Map<String, String>) skuMap.get(0)).get("names");
+                    sku.setSpec(skuName);
+                    Integer price = skuInfo.getBigDecimal("price").multiply(PERCENT).intValue();
+                    sku.setMarketPrice(price);
+                    sku.setPrice(price);
+                    sku.setStock(skuInfo.getInteger("stock"));
+                    skuList.add(sku);
+                    item.setSkuList(skuList);
+                }
+            }
             if (Strings.isNullOrEmpty(item.getContent()) && e.html().contains("httpsDescUrl")) {
                 Matcher m = TM_DESC_URL_P.matcher(e.html());
                 if (m.find()) {
@@ -205,15 +213,15 @@ public class ItemImportService {
             item.setMainImg(images.get(0));
             item.setImages(Joiner.on(',').join(images));
         }
-        //        if (CollectionUtil.isEmpty(item.getSkuList())) {
-        //            Sku sku = new Sku();
-        //            sku.setStock(1L);
-        //            sku.setMarketPrice(BigDecimal.ZERO);
-        //            sku.setPrice(BigDecimal.ZERO);
-        //            sku.setSpec("默认");
-        //            sku.setDeleted(false);
-        //            item.setSkuList(Arrays.asList(sku));
-        //        }
+        if (CollectionUtil.isEmpty(item.getSkuList())) {
+            Sku sku = new Sku();
+            sku.setStock(1);
+            sku.setMarketPrice(0);
+            sku.setPrice(0);
+            sku.setSpec("默认");
+            sku.setDeleted(false);
+            item.setSkuList(Arrays.asList(sku));
+        }
         return Json.SUCCESS().setData(item);
     }
 
@@ -257,28 +265,28 @@ public class ItemImportService {
         Elements jsEs = doc.select("script");
         for (int i = 0; i < jsEs.size(); i++) {
             Element e = jsEs.get(i);
-            //            if (e.html().contains("skuList")) {
-            //                Matcher m = TM_SKU_P.matcher(e.html());
-            //                JSONArray skuMap;
-            //                Map<String, JSONObject> skuNameMap;
-            //                if (m.find()) {
-            //                    List<Sku> skuList = new ArrayList<>();
-            //                    skuMap = JSON.parseArray(m.group(1));
-            //                    skuNameMap = JSON.parseObject(m.group(2), Map.class);
-            //                    Sku sku = new Sku();
-            //                    JSONObject skuInfo = Iterables.getFirst(skuNameMap.values(), null);
-            //                    if (skuInfo == null)
-            //                        break;
-            //                    String skuName = ((Map<String, String>) skuMap.get(0)).get("names");
-            //                    sku.setSpec(skuName);
-            //                    BigDecimal price = skuInfo.getBigDecimal("price");
-            //                    sku.setMarketPrice(price);
-            //                    sku.setPrice(price);
-            //                    sku.setStock(skuInfo.getLong("stock"));
-            //                    skuList.add(sku);
-            //                    item.setSkuList(skuList);
-            //                }
-            //            }
+            if (e.html().contains("skuList")) {
+                Matcher m = TM_SKU_P.matcher(e.html());
+                JSONArray skuMap;
+                Map<String, JSONObject> skuNameMap;
+                if (m.find()) {
+                    List<Sku> skuList = new ArrayList<>();
+                    skuMap = JSON.parseArray(m.group(1));
+                    skuNameMap = JSON.parseObject(m.group(2), Map.class);
+                    Sku sku = new Sku();
+                    JSONObject skuInfo = Iterables.getFirst(skuNameMap.values(), null);
+                    if (skuInfo == null)
+                        break;
+                    String skuName = ((Map<String, String>) skuMap.get(0)).get("names");
+                    sku.setSpec(skuName);
+                    Integer price = skuInfo.getBigDecimal("price").multiply(PERCENT).intValue();
+                    sku.setMarketPrice(price);
+                    sku.setPrice(price);
+                    sku.setStock(skuInfo.getInteger("stock"));
+                    skuList.add(sku);
+                    item.setSkuList(skuList);
+                }
+            }
             if (e.html().contains("httpsDescUrl")) {
                 Matcher m = TMHK_DESC_URL_P.matcher(e.html());
                 if (m.find()) {
@@ -286,15 +294,14 @@ public class ItemImportService {
                 }
             }
         }
-        //        if (CollectionUtil.isEmpty(item.getSkuList())) {
-        //            Sku sku = new Sku();
-        //            sku.setSpec("默认不发货");
-        //            BigDecimal marketPrice = BigDecimal.ZERO;
-        //            sku.setMarketPrice(marketPrice);
-        //            sku.setPrice(marketPrice);
-        //            sku.setStock(0L);
-        //            item.setSkuList(Arrays.asList(sku));
-        //        }
+        if (CollectionUtil.isEmpty(item.getSkuList())) {
+            Sku sku = new Sku();
+            sku.setSpec("默认不发货");
+            sku.setMarketPrice(0);
+            sku.setPrice(0);
+            sku.setStock(0);
+            item.setSkuList(Arrays.asList(sku));
+        }
         return Json.SUCCESS().setData(item);
     }
 
@@ -302,55 +309,55 @@ public class ItemImportService {
         String descUrl = "http:" + m.group(1);
         Document descDoc = Jsoup.connect(descUrl).ignoreContentType(true).get();
         return descDoc.getElementsByTag("body").first().children().html();
-//        while (els.hasNext()) {
-//            Element el = els.next();
-//            if ("img".equals(el.tagName())) {
-//                String src = el.attr("src");
-//                if (src.endsWith(".gif"))
-//                    continue;
-//                ItemContent content = new ItemContent();
-//                content.setType("IMG");
-//                content.setContent(src);
-//                contents.add(content);
-//            } else if (el.children().size() > 0) {
-//                Elements imgEs = el.select("img");
-//                if (imgEs.size() > 0) {
-//                    for (int j = 0; j < imgEs.size(); j++) {
-//                        String src = imgEs.get(j).attr("src");
-//                        if (src.endsWith(".gif"))
-//                            continue;
-//                        ItemContent content = new ItemContent();
-//                        content.setType("IMG");
-//                        content.setContent(src);
-//                        contents.add(content);
-//                    }
-//                }
-//                Elements spanEs = el.select("span");
-//                if (spanEs.size() > 0) {
-//                    for (int j = 0; j < spanEs.size(); j++) {
-//                        ItemContent content = new ItemContent();
-//                        content.setType("A");
-//                        content.setContent(spanEs.get(j).text());
-//                        contents.add(content);
-//                    }
-//                }
-//                Elements pEs = el.select("p");
-//                if (pEs.size() > 0) {
-//                    for (int j = 0; j < pEs.size(); j++) {
-//                        ItemContent content = new ItemContent();
-//                        content.setType("A");
-//                        content.setContent(pEs.get(j).text());
-//                        contents.add(content);
-//                    }
-//                }
-//            } else {
-//                ItemContent content = new ItemContent();
-//                content.setType("A");
-//                content.setContent(el.text());
-//                contents.add(content);
-//            }
-//        }
-//        return contents;
+        //        while (els.hasNext()) {
+        //            Element el = els.next();
+        //            if ("img".equals(el.tagName())) {
+        //                String src = el.attr("src");
+        //                if (src.endsWith(".gif"))
+        //                    continue;
+        //                ItemContent content = new ItemContent();
+        //                content.setType("IMG");
+        //                content.setContent(src);
+        //                contents.add(content);
+        //            } else if (el.children().size() > 0) {
+        //                Elements imgEs = el.select("img");
+        //                if (imgEs.size() > 0) {
+        //                    for (int j = 0; j < imgEs.size(); j++) {
+        //                        String src = imgEs.get(j).attr("src");
+        //                        if (src.endsWith(".gif"))
+        //                            continue;
+        //                        ItemContent content = new ItemContent();
+        //                        content.setType("IMG");
+        //                        content.setContent(src);
+        //                        contents.add(content);
+        //                    }
+        //                }
+        //                Elements spanEs = el.select("span");
+        //                if (spanEs.size() > 0) {
+        //                    for (int j = 0; j < spanEs.size(); j++) {
+        //                        ItemContent content = new ItemContent();
+        //                        content.setType("A");
+        //                        content.setContent(spanEs.get(j).text());
+        //                        contents.add(content);
+        //                    }
+        //                }
+        //                Elements pEs = el.select("p");
+        //                if (pEs.size() > 0) {
+        //                    for (int j = 0; j < pEs.size(); j++) {
+        //                        ItemContent content = new ItemContent();
+        //                        content.setType("A");
+        //                        content.setContent(pEs.get(j).text());
+        //                        contents.add(content);
+        //                    }
+        //                }
+        //            } else {
+        //                ItemContent content = new ItemContent();
+        //                content.setType("A");
+        //                content.setContent(el.text());
+        //                contents.add(content);
+        //            }
+        //        }
+        //        return contents;
     }
 
 }
