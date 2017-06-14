@@ -12,6 +12,14 @@ public class ItemContent implements Serializable {
 
     private String content;
 
+    public ItemContent() {
+    }
+
+    public ItemContent(Long id, String content) {
+        this.id = id;
+        this.content = content;
+    }
+
     public Long getId() {
         return id;
     }

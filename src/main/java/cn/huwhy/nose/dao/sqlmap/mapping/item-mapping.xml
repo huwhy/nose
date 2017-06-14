@@ -5,17 +5,16 @@
   <sql id="COLUMNS">
      id,`tb_id`,`first_cat_id`,`second_cat_id`,`third_cat_id`,shop_id,shop_status,
      title,sub_title,`props`,main_img,images,status,sale_num,low_price,high_price,
-     low_market_price,high_market_price,high_can_use_bee,total_stock,modified,created
+     low_market_price,high_market_price,total_stock,modified,created
   </sql>
 
   <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="Item">
     insert into item(
     <include refid="COLUMNS"/>
     )values(
-    #{id},#{firstCatId},#{secondCatId},#{thirdCatId},#{shopId},#{shopStatus.value},
-    #{title},#{subTitle},#{props},#{mainImg},#{images},#{saleNum},#{lowPrice},
-    #{highPrice},#{lowMarketPrice},#{highMarketPrice},#{highCanUseBee},#{totalStock},
-    #{modified},now()
+    #{id},#{tbId},#{firstCatId},#{secondCatId},#{thirdCatId},#{shopId},#{shopStatus.value},
+    #{title},#{subTitle},#{props},#{mainImg},#{images},#{status.value},#{saleNum},#{lowPrice},
+    #{highPrice},#{lowMarketPrice},#{highMarketPrice},#{totalStock},#{modified},now()
     ) on duplicate key update
     first_cat_id=VALUES(first_cat_id),second_cat_id=VALUES(second_cat_id),third_cat_id=VALUES(third_cat_id),
     title=VALUES(title),sub_title=VALUES(sub_title),`props`=VALUES(`props`),main_img=VALUES(main_img),

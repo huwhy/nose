@@ -2,6 +2,9 @@ package cn.huwhy.nose.model;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+
+import com.google.common.base.Splitter;
 
 import cn.huwhy.nose.cons.ItemStatus;
 import cn.huwhy.nose.cons.ShopStatus;
@@ -45,7 +48,7 @@ public class Item implements Serializable {
     /**
      * 副标题
      */
-    private String     sub_title;
+    private String     subTitle;
     /**
      * 属性
      */
@@ -159,12 +162,12 @@ public class Item implements Serializable {
         this.title = title;
     }
 
-    public String getSub_title() {
-        return sub_title;
+    public String getSubTitle() {
+        return subTitle;
     }
 
-    public void setSub_title(String sub_title) {
-        this.sub_title = sub_title;
+    public void setSubTitle(String subTitle) {
+        this.subTitle = subTitle;
     }
 
     public String getProps() {
@@ -261,5 +264,19 @@ public class Item implements Serializable {
 
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    private String content;
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public List<String> getImageList() {
+        return Splitter.on(',').splitToList(getImages());
     }
 }

@@ -6,6 +6,7 @@ public class SyncShop {
     private Long    id;
     private Boolean locked;
     private Date    lastSyncTime;
+    private String  url;
 
     public Long getId() {
         return id;
@@ -29,5 +30,13 @@ public class SyncShop {
 
     public void setLastSyncTime(Date lastSyncTime) {
         this.lastSyncTime = lastSyncTime;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

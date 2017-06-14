@@ -3,14 +3,14 @@
 <mapper namespace="cn.huwhy.nose.dao.SyncShopDao">
 
   <sql id="COLUMNS">
-     id,`locked`, `last_sync_time`,
+     id,`locked`,`url`,`last_sync_time`,
   </sql>
 
   <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="SyncShop">
     insert into sync_shop(
     <include refid="COLUMNS"/>
     )values(
-    #{id},#{locked},`last_sync_time`
+    #{id},#{locked},#{url},#{lastSyncTime}
     ) on duplicate key update
     `locked`=VALUES(`locked`),last_sync_time=VALUES(last_sync_time)
   </insert>
@@ -19,6 +19,12 @@
     select
     <include refid="COLUMNS"/>
     from sync_shop where id = #{id}
+  </select>
+
+  <select id="findPaging" resultType="SyncShop">
+    select
+    <include refid="COLUMNS"/>
+    from sync_shop where locked=false and last_sync_time &lt;=#{lastSyncTime}
   </select>
 
 </mapper>

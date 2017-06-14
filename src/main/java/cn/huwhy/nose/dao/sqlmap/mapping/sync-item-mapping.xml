@@ -3,14 +3,14 @@
 <mapper namespace="cn.huwhy.nose.dao.SyncItemDao">
 
   <sql id="COLUMNS">
-     id,`ok`
+     id,`ok`,url
   </sql>
 
   <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="SyncItem">
     insert into sync_item(
     <include refid="COLUMNS"/>
     )values(
-    #{id},#{ok}
+    #{id},#{ok},#{url}
     ) on duplicate key update
     `ok`=VALUES(`ok`)
   </insert>
@@ -19,6 +19,12 @@
     select
     <include refid="COLUMNS"/>
     from sync_item where id = #{id}
+  </select>
+
+  <select id="findPaging" resultType="SyncItem">
+    select
+    <include refid="COLUMNS"/>
+    from sync_item where ok =false
   </select>
 
 </mapper>
