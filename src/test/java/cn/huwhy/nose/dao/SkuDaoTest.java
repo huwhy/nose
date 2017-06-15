@@ -31,4 +31,10 @@ public class SkuDaoTest extends BaseTest {
         skuDao.saves(skuList);
     }
 
+    @Test
+    public void get() {
+        Sku sku = skuDao.get(1L);
+        System.out.println(sku);
+    }
+
 }
