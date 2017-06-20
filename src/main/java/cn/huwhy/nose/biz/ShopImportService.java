@@ -47,15 +47,13 @@ public class ShopImportService {
         shop.setStatus(ShopStatus.ONLINE);
 
         Map<String, String> idUrls;
-        if (shopUrl.matches("http[s]?://[^\\.]+\\.taobao.com")) {
-            idUrls = tb(shopUrl);
-            String shopName = doc.select(".shop-name .J_TGoldlog").text();
+        if (shopUrl.contains(".taobao.com/")) {
+            String shopName = doc.select("a.shop-name").text();
             if (!Strings.isNullOrEmpty(shopName)) {
                 shop.setName(shopName);
             }
-        } else {
-            idUrls = tm(shopUrl);
         }
+        idUrls = tm(shopUrl);
         shopBiz.save(shop);
         List<SyncItem> syncItems = new ArrayList<>(idUrls.size());
         for (Map.Entry<String, String> entry : idUrls.entrySet()) {
@@ -78,44 +76,27 @@ public class ShopImportService {
         Matcher dm = DOMAIN_P.matcher(shopUrl);
         if (dm.find()) {
             String baseUrl = dm.group();
-            String uri = baseUrl + "/search.htm?search=y&pageNo=1";
-            Document doc = Jsoup.connect(uri).userAgent("Mozilla").get();
-            Matcher m = TM_P.matcher(doc.html());
-            if (m.find()) {
-                String uri2 = m.group(1);
-                String x = baseUrl + uri2.replaceAll("&amp;", "&");
-                doc = Jsoup.connect(x).userAgent("Mozilla").get();
-                Matcher mm = p.matcher(doc.html());
-                int index = 0;
-                while (mm.find(index)) {
-                    idUrls.put(mm.group(2), mm.group());
-                    index = mm.end();
-                }
-            }
-        }
-        return idUrls;
-    }
-
-    private Map<String, String> tb(String shopUrl) throws IOException {
-        Map<String, String> idUrls = new HashMap<>();
-        Matcher dm = DOMAIN_P.matcher(shopUrl);
-        if (dm.find()) {
-            String baseUrl = dm.group();
-            int page = 1, cnt;
-            String uri = baseUrl + "/search.htm?search=y&pageNo=" + page;
+            int page = 1;
             do {
-                cnt = 0;
+                String uri = baseUrl + "/search.htm?search=y&pageNo=" + page;
                 Document doc = Jsoup.connect(uri).userAgent("Mozilla").get();
-                Matcher m = p.matcher(doc.html());
-                System.out.println(doc.html());
-                int index = 0;
-                while (m.find(index)) {
-                    idUrls.put(m.group(2), m.group());
-                    index = m.end();
-                    cnt++;
+                Matcher m = TM_P.matcher(doc.html());
+                if (m.find()) {
+                    String uri2 = m.group(1);
+                    String x = baseUrl + uri2.replaceAll("&amp;", "&");
+                    doc = Jsoup.connect(x).userAgent("Mozilla").get();
+                    if (doc.body().html().contains("item-not-found")) {
+                        break;
+                    }
+                    Matcher mm = p.matcher(doc.html());
+                    int index = 0;
+                    while (mm.find(index)) {
+                        idUrls.put(mm.group(2), mm.group());
+                        index = mm.end();
+                    }
                 }
                 page++;
-            } while (cnt > 0);
+            } while (true);
         }
         return idUrls;
     }
