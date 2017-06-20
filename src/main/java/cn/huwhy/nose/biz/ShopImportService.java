@@ -1,6 +1,7 @@
 package cn.huwhy.nose.biz;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.base.Strings;
 
 import cn.huwhy.nose.cons.ShopStatus;
 import cn.huwhy.nose.model.Shop;
@@ -35,21 +38,25 @@ public class ShopImportService {
         Shop shop = new Shop();
         Matcher matcher = NAME_P.matcher(doc.html());
         if (matcher.find()) {
-            shop.setName(matcher.group(1));
+            shop.setName(URLDecoder.decode(matcher.group(1), "utf-8"));
         }
         matcher = SHOP_P.matcher(doc.html());
         if (matcher.find()) {
             shop.setId(Long.valueOf(matcher.group(1)));
         }
         shop.setStatus(ShopStatus.ONLINE);
-        shopBiz.save(shop);
 
         Map<String, String> idUrls;
         if (shopUrl.matches("http[s]?://[^\\.]+\\.taobao.com")) {
             idUrls = tb(shopUrl);
+            String shopName = doc.select(".shop-name .J_TGoldlog").text();
+            if (!Strings.isNullOrEmpty(shopName)) {
+                shop.setName(shopName);
+            }
         } else {
             idUrls = tm(shopUrl);
         }
+        shopBiz.save(shop);
         List<SyncItem> syncItems = new ArrayList<>(idUrls.size());
         for (Map.Entry<String, String> entry : idUrls.entrySet()) {
             SyncItem si = new SyncItem();

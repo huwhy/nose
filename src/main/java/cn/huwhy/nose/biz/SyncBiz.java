@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.comblife.athena.common.util.CollectionUtil;
+
 import cn.huwhy.interfaces.Paging;
 import cn.huwhy.nose.term.ItemTerm;
 import cn.huwhy.nose.term.ShopTerm;
@@ -33,7 +35,9 @@ public class SyncBiz {
 
     @Transactional
     public void save(List<SyncItem> sis) {
-        syncItemDao.saves(sis);
+        if (CollectionUtil.isNotEmpty(sis)) {
+            syncItemDao.saves(sis);
+        }
     }
 
 

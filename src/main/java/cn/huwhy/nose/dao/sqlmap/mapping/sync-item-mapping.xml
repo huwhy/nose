@@ -23,7 +23,7 @@
       (#{si.id},#{si.ok},#{si.url})
     </foreach>
     on duplicate key update
-    `ok`=VALUES(`ok`)
+    `ok`=VALUES(`ok`),url=VALUES(url)
   </insert>
 
   <select id="get" resultType="SyncItem" parameterType="java.lang.Long">
