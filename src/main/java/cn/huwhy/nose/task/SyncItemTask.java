@@ -43,8 +43,9 @@ public class SyncItemTask {
         ItemTerm term = new ItemTerm();
         term.setPage(1L);
         term.setSize(15L);
-        Paging<SyncItem> paging = syncBiz.findSyncItems(term);
+        Paging<SyncItem> paging;
         do {
+            paging = syncBiz.findSyncItems(term);
             for (SyncItem si : paging.getData()) {
                 if (ids.add(si.getId())) {
                     logger.info("sync item start tb-id={}", si.getId());

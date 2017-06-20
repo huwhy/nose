@@ -41,8 +41,9 @@ public class SyncShopTask {
         term.setPage(1L);
         term.setSize(15L);
         term.setLastSyncTime(LocalDate.now().minusDays(1).toDate());
-        Paging<SyncShop> paging = syncBiz.findShops(term);
+        Paging<SyncShop> paging;
         do {
+            paging = syncBiz.findShops(term);
             for (SyncShop si : paging.getData()) {
                 if (ids.add(si.getId())) {
                     logger.info("sync shop start tb-id={}", si.getId());
