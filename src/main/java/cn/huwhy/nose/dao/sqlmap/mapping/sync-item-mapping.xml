@@ -15,6 +15,17 @@
     `ok`=VALUES(`ok`)
   </insert>
 
+  <insert id="saves">
+    insert into sync_item(
+    <include refid="COLUMNS"/>
+    )values
+    <foreach collection="list" item="si" separator="," index="i">
+      (#{si.id},#{si.ok},#{si.url})
+    </foreach>
+    on duplicate key update
+    `ok`=VALUES(`ok`)
+  </insert>
+
   <select id="get" resultType="SyncItem" parameterType="java.lang.Long">
     select
     <include refid="COLUMNS"/>

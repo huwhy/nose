@@ -31,6 +31,16 @@ public class SyncBiz {
         syncItemDao.save(si);
     }
 
+    @Transactional
+    public void save(List<SyncItem> sis) {
+        syncItemDao.saves(sis);
+    }
+
+
+    @Transactional
+    public void save(SyncShop si) {
+        syncShopDao.save(si);
+    }
     public Paging<SyncShop> findShops(ShopTerm term) {
         List<SyncShop> list = syncShopDao.findPaging(term);
         return new Paging<>(term, list);

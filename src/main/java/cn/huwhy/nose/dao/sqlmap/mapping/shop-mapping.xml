@@ -12,7 +12,7 @@
     )values(
     #{id},#{uid},#{name},#{status.value},now()
     ) on duplicate key update
-    uid=VALUES(uid),`name`=VALUES(`name`)
+    uid=VALUES(uid),`name`=VALUES(`name`), `status`=VALUES(`status`)
   </insert>
 
   <select id="get" resultType="Shop" parameterType="java.lang.Long">

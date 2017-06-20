@@ -3,7 +3,7 @@
 <mapper namespace="cn.huwhy.nose.dao.SyncShopDao">
 
   <sql id="COLUMNS">
-     id,`locked`,`url`,`last_sync_time`,
+     id,`locked`,`url`,`last_sync_time`
   </sql>
 
   <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="SyncShop">
