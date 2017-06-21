@@ -1,3 +1,4 @@
+drop table if exists `item`;
 CREATE TABLE `item` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '商品ID',
   `tb_id` bigint(20) NOT NULL COMMENT '淘商品ID',
@@ -24,12 +25,14 @@ CREATE TABLE `item` (
   KEY `status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品表';
 
+drop table if exists `item_content`;
 CREATE TABLE `item_content` (
   `id` bigint(20) NOT NULL,
   `content` mediumtext COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+drop table if exists `shop`;
 CREATE TABLE `shop` (
   `id` bigint(20) NOT NULL COMMENT '店铺ID',
   `uid` int(11) DEFAULT NULL COMMENT '用户ID',
