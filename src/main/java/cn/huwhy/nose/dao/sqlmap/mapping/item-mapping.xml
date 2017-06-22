@@ -18,7 +18,9 @@
     ) on duplicate key update
     first_cat_id=VALUES(first_cat_id),second_cat_id=VALUES(second_cat_id),third_cat_id=VALUES(third_cat_id),
     title=VALUES(title),sub_title=VALUES(sub_title),`props`=VALUES(`props`),main_img=VALUES(main_img),
-    images=VALUES(images),status=VALUES(status), shop_id=VALUES(shop_id)
+    images=VALUES(images),status=VALUES(status), shop_id=VALUES(shop_id),low_price=VALUES(low_price),
+    high_price=VALUES(high_price),low_market_price=VALUES(low_market_price),
+    high_market_price=VALUES(high_market_price),total_stock=VALUES(total_stock)
   </insert>
 
   <update id="update" parameterType="Item">
