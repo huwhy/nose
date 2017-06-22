@@ -1,5 +1,6 @@
 package cn.huwhy.nose.task;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,6 +20,7 @@ import cn.huwhy.nose.biz.ItemImportService;
 import cn.huwhy.nose.biz.SyncBiz;
 import cn.huwhy.nose.cons.ItemStatus;
 import cn.huwhy.nose.model.Item;
+import cn.huwhy.nose.model.Sku;
 import cn.huwhy.nose.model.SyncItem;
 import cn.huwhy.nose.term.ItemTerm;
 
@@ -52,7 +54,24 @@ public class SyncItemTask {
                     try {
                         Json<Item> json = itemImportService.importAliItem(si.getUrl());
                         if (json.isOk()) {
-                            syncSave(si, json);
+                            Integer low = Integer.MAX_VALUE;
+                            Integer high = 0;
+                            Item item = json.getData();
+                            for (Sku sku : item.getSkuList()) {
+                                if (low > sku.getPrice()) {
+                                    low = sku.getPrice();
+                                }
+                                if (high < sku.getPrice()) {
+                                    high = sku.getPrice();
+                                }
+                            }
+                            item.setHighMarketPrice(high);
+                            item.setLowMarketPrice(low);
+                            item.setHighPrice(high);
+                            item.setLowPrice(low);
+                            item.setTotalStock(0L);
+                            item.setModified(new Date());
+                            syncSave(si, item);
                         }
                         logger.info("sync item end tb-id={}, result-{}, msg-{}",
                                 si.getId(), json.isOk(), json.getMessage());
@@ -67,11 +86,10 @@ public class SyncItemTask {
         } while (term.getPage() <= paging.getTotalPage());
     }
 
-    private void syncSave(SyncItem si, Json<Item> json) {
+    private void syncSave(SyncItem si, Item item) {
         txTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                Item item = json.getData();
                 item.setTbId(si.getId());
                 item.setStatus(ItemStatus.ONLINE);
                 si.setOk(true);
