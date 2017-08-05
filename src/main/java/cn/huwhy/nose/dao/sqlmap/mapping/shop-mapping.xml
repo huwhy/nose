@@ -3,16 +3,16 @@
 <mapper namespace="cn.huwhy.nose.dao.ShopDao">
 
   <sql id="COLUMNS">
-     id,`uid`,`name`,`status`,`created`
+     id,`customer_id`,`name`,`status`,`created`
   </sql>
 
   <insert id="save" useGeneratedKeys="true" keyProperty="id" parameterType="Shop">
     insert into shop(
     <include refid="COLUMNS"/>
     )values(
-    #{id},#{uid},#{name},#{status.value},now()
+    #{id},#{customerId},#{name},#{status.value},now()
     ) on duplicate key update
-    uid=VALUES(uid),`name`=VALUES(`name`), `status`=VALUES(`status`)
+    uid=VALUES(customerId),`name`=VALUES(`name`), `status`=VALUES(`status`)
   </insert>
 
   <select id="get" resultType="Shop" parameterType="java.lang.Long">

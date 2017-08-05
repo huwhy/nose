@@ -7,7 +7,7 @@ import cn.huwhy.nose.cons.ShopStatus;
 
 public class Shop implements Serializable {
     private Long       id;
-    private Integer    uid;
+    private Integer    customerId;
     private String     name;
     private ShopStatus status;
     private Date       created;
@@ -20,12 +20,12 @@ public class Shop implements Serializable {
         this.id = id;
     }
 
-    public Integer getUid() {
-        return uid;
+    public Integer getCustomerId() {
+        return customerId;
     }
 
-    public void setUid(Integer uid) {
-        this.uid = uid;
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
     }
 
     public String getName() {

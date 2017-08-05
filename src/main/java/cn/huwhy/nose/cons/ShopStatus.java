@@ -2,12 +2,24 @@ package cn.huwhy.nose.cons;
 
 import cn.huwhy.interfaces.EnumValue;
 
-public enum ShopStatus implements EnumValue<String> {
-    ONLINE,
-    OFFLINE;
+public enum ShopStatus implements EnumValue<Integer> {
+    NORMAL("正常", 1),
+    LOCKED("冻结", 2);
+
+    ShopStatus(String name, Integer value) {
+        this.name = name;
+        this.value = value;
+    }
+
+    private String  name;
+    private Integer value;
+
+    public String getName() {
+        return name;
+    }
 
     @Override
-    public String getValue() {
-        return name();
+    public Integer getValue() {
+        return value;
     }
 }
